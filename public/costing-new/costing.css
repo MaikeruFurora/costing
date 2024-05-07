@@ -1,0 +1,68 @@
+.form-label{
+    margin-bottom: 1px !important;
+    font-size:11px
+}
+
+.table>thead>tr>th{
+    /* border: none */
+}
+.table>tbody>tr>td{
+    padding: .7rem;
+    padding-left: 15px;
+    /* text-align: center; */
+    /* border:none; */
+    vertical-align: middle;
+    font-size:11px   
+}
+.copyTable>tbody>tr>td{
+    padding: .3rem;
+    padding-left: 10px;
+    /* text-align: center; */
+    font-size:9px
+}
+
+.copyTable>thead>tr>td{
+    padding: .1rem;
+    padding-left: 10px;
+    /* text-align: center; */
+    font-size:9px   
+}
+
+    .copyTable1>tbody>tr>td{
+        padding: .1rem;
+        padding-left: 10px;
+        /* text-align: center; */
+        font-size:9px
+    }
+
+    .copyTable1>thead>tr>th{
+        padding: .1rem;
+        padding-left: 10px;
+        /* text-align: center; */
+        font-size:9px   
+    }
+
+.copyTable>tbody>tr>td{
+    padding: 0rem;
+}
+
+#myTable>tfoot>tr>th{
+    padding: 1px;
+    /* border:none */
+}
+#myTable1>tfoot>tr>th{
+    padding: 1px;
+    /* border:none */
+}
+
+.not-allowed{
+    cursor: not-allowed;
+}
+
+.highlighted{
+    background-color: rgb(217, 214, 214) !important;
+}
+
+.alertify .ajs-modal {
+    background-color: #f0f0f0; /* Replace with your desired background color */
+}

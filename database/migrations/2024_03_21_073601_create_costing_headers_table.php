@@ -33,6 +33,7 @@ class CreateCostingHeadersTable extends Migration
             $table->string('confirmation',50)->nullable();
             $table->string('deliveryType',50)->nullable();
             $table->double('coloadQuantity',18,4)->nullable();
+            $table->boolean('is_recomputed_trucking')->default(false);
             $table->timestamps();
         });
     }

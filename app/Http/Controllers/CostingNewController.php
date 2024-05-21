@@ -47,60 +47,108 @@ class CostingNewController extends Controller
 
     public function store(Request $request)
     {
-        $arrInput = ['client','form','company','municipality','paymentMode','province','truckCategory','trucktype_id','warehouse_origin_id','coloadQuantity','deliveryType'];
+        $arrInput   = [
+                        'client','form','company','municipality',
+                        'paymentMode','province','truckCategory',
+                        'trucktype_id','warehouse_origin_id',
+                        'coloadQuantity','deliveryType'
+                    ];
         $requestData = $request->only($arrInput);
         $requestData['costingHeaderNo']  = CostingHeader::setPrefixSeries('H');
-        $costing_heading = CostingHeader::create($requestData)->id;
-
-        $costings  = collect(json_decode($request->input('costing', '[]')));
-        $data      = array();
-
-        $costingNo = Costing::setPrefixSeries('C',true,count($costings)); 
-         for ($i=0; $i <count($costings) ; $i++) { 
-            $data[] = [
-                'costing_header_id'  => $costing_heading,
-                'costingNo'          => $costingNo[$i],
-                'itemName'           => $costings[$i]->itemName,
-                'brand'              => $costings[$i]->brand,
-                'itemCode'           => $costings[$i]->itemCode,
-                'taxCode'            => $costings[$i]->taxCode,
-                'totalCosting'       => $costings[$i]->totalCosting,
-                'specialPrice'       => $costings[$i]->specialPrice,
-                'volumePrice'        => $costings[$i]->volumePrice,
-                'quantity'           => $costings[$i]->quantity,
-                'sku'                => $costings[$i]->sku,
-                'pickupPrice'        => $costings[$i]->pickupPrice,
-                'trucking'           => $costings[$i]->trucking,
-                
-                'analysisFee'        => floatval($costings[$i]->analysisFee ?? NULL),
-                'plasticLiner'       => floatval($costings[$i]->plasticLiner ?? NULL),
-                'twoDrops'           => floatval($costings[$i]->twoDrops ?? NULL),
-                'parking'            => floatval($costings[$i]->parking ?? NULL),
-                'additionalTrucking' => floatval($costings[$i]->additionalTrucking ?? NULL),
-                'tollFee'            => floatval($costings[$i]->tollFee ?? NULL),
-                'allowance'          => floatval($costings[$i]->allowance ?? NULL),
-                'loading'            => floatval($costings[$i]->loading ?? NULL),
-                'unloading'          => floatval($costings[$i]->unloading ?? NULL),
-                'additionalUnloading'=> floatval($costings[$i]->additionalUnloading ?? NULL),
-                'terms'              => floatval($costings[$i]->terms ?? NULL),
-                'cleaning'           => floatval($costings[$i]->cleaning ?? NULL),
-                'entryFee'           => floatval($costings[$i]->entryFee ?? NULL),
-                'emptySack'          => floatval($costings[$i]->emptySack ?? NULL),
-                'others'             => floatval($costings[$i]->others ?? NULL),
-                'sticker'            => floatval($costings[$i]->sticker ?? NULL),
-                'escort'             => floatval($costings[$i]->escort ?? NULL),
-                'bankCharge'         => floatval($costings[$i]->bankCharge ?? NULL),
-                'commision'          => floatval($costings[$i]->commision ?? NULL),
-                'serviceFee'         => floatval($costings[$i]->serviceFee ?? NULL),
-                'allowanceWeight'    => floatval($costings[$i]->allowanceWeight ?? NULL),
-                'truckScale'         => floatval($costings[$i]->truckScale ?? NULL),
-                "created_at"         => Carbon::now(),
-                "updated_at"         => Carbon::now(), 
-            ];
-        }
+        $costings    = collect(json_decode($request->input('costing', '[]')));
+        $inkls       = $costings->reduce(function ($acc, $row) {  return $acc + (int) ($row->quantity * $row->sku);  }, 0);
+        
+        
+        if (($inkls < floatval($request->capacity) && $request->deliveryType=="ONETIMEDELIVERY") && ($inkls > floatval($request->capacity) && $request->deliveryType=="ONETIMEDELIVERY")) {
+            // $data            = array();
+            // $costing_heading = CostingHeader::create($requestData)->id;
+            // $costingNo       = Costing::setPrefixSeries('C',true,count($costings)); 
+            // for ($i=0; $i <count($costings) ; $i++) { 
+            //     $data[] = [
+            //         'costing_header_id'  => $costing_heading,
+            //         'costingNo'          => $costingNo[$i],
+            //         'itemName'           => $costings[$i]->itemName,
+            //         'brand'              => $costings[$i]->brand,
+            //         'itemCode'           => $costings[$i]->itemCode,
+            //         'taxCode'            => $costings[$i]->taxCode,
+            //         'totalCosting'       => $costings[$i]->totalCosting,
+            //         'specialPrice'       => $costings[$i]->specialPrice,
+            //         'volumePrice'        => $costings[$i]->volumePrice,
+            //         'quantity'           => $costings[$i]->quantity,
+            //         'sku'                => $costings[$i]->sku,
+            //         'pickupPrice'        => $costings[$i]->pickupPrice,
+            //         'trucking'           => $costings[$i]->trucking,
+                    
+            //         'analysisFee'        => floatval($costings[$i]->analysisFee ?? NULL),
+            //         'plasticLiner'       => floatval($costings[$i]->plasticLiner ?? NULL),
+            //         'twoDrops'           => floatval($costings[$i]->twoDrops ?? NULL),
+            //         'parking'            => floatval($costings[$i]->parking ?? NULL),
+            //         'additionalTrucking' => floatval($costings[$i]->additionalTrucking ?? NULL),
+            //         'tollFee'            => floatval($costings[$i]->tollFee ?? NULL),
+            //         'allowance'          => floatval($costings[$i]->allowance ?? NULL),
+            //         'loading'            => floatval($costings[$i]->loading ?? NULL),
+            //         'unloading'          => floatval($costings[$i]->unloading ?? NULL),
+            //         'additionalUnloading'=> floatval($costings[$i]->additionalUnloading ?? NULL),
+            //         'terms'              => floatval($costings[$i]->terms ?? NULL),
+            //         'cleaning'           => floatval($costings[$i]->cleaning ?? NULL),
+            //         'entryFee'           => floatval($costings[$i]->entryFee ?? NULL),
+            //         'emptySack'          => floatval($costings[$i]->emptySack ?? NULL),
+            //         'others'             => floatval($costings[$i]->others ?? NULL),
+            //         'sticker'            => floatval($costings[$i]->sticker ?? NULL),
+            //         'escort'             => floatval($costings[$i]->escort ?? NULL),
+            //         'bankCharge'         => floatval($costings[$i]->bankCharge ?? NULL),
+            //         'commision'          => floatval($costings[$i]->commision ?? NULL),
+            //         'serviceFee'         => floatval($costings[$i]->serviceFee ?? NULL),
+            //         'allowanceWeight'    => floatval($costings[$i]->allowanceWeight ?? NULL),
+            //         'truckScale'         => floatval($costings[$i]->truckScale ?? NULL),
+            //         "created_at"         => Carbon::now(),
+            //         "updated_at"         => Carbon::now(), 
+            //     ];
+            // }
     
-        Costing::insert($data);
+            // Costing::insert($data);
+
+        }else{
+
+             $status =  ($inkls < floatval($request->capacity) && $request->deliveryType=="ONETIMEDELIVERY") ?
+                        "The truck is underload. Will cause of recompute of trucking. Would you like to continue"
+                        :(($inkls > floatval($request->capacity) && $request->deliveryType=="ONETIMEDELIVERY")?
+                        "Truck is over load. will cause of recompute of trucking. Would you like to continue"
+                        :"Succesfully Saved");
+
+            foreach ($costings as $key => $value) {
+                $value->trucking = $this->computedRate(
+                    new Request([
+                        'sku'       => $value->sku,
+                        'quantity'  => $value->quantity,
+                        'rate'      => $request->rate,
+                        'capacity'  => $request->capacity,
+                    ])
+                );
+            }
+            return response()->json([
+                "msg"=> $status,
+                "data"  => $costings,
+                "status"=> $status!="Succesfully Saved" ? false : true
+            ], $status!="Succesfully Saved" ? 400 : 200);
+
+        }
+
     }
+    
+    // public function checkCostingCapacity($costing,$requestData){
+
+
+    //     // $status = () ? "The truck is underload. Will cause of recompute of trucking. Would you like to continue":
+    //     //           ( ? "Truck is over load. will cause of recompute of trucking. Would you like to continue": "Succesfully Saved");
+        
+    //     return response()->json([
+    //         "msg"=> $status,
+    //         "data"  => $costing,
+    //         "status"=> $status!="Succesfully Saved" ? false : true
+    //     ], $status!="Succesfully Saved" ? 400 : 200);
+
+    // }
 
 
     public function list(Request $request){
@@ -178,22 +226,22 @@ class CostingNewController extends Controller
         ],200);
     }
 
-    public function finalRate(Request $request){
+    public function computedRate(Request $request){
 
         $sku          = $request->input('sku');
         $rate         = $request->input('rate');
         $capacity     = $request->input('capacity');
         $quantity     = $request->input('quantity');
         //-----------------------------------------
-        $simpleRateFormula  = ($sku/50)*$rate;
+        $simpleRateFormula  = (($sku/50)*$rate);
         
         if (!empty($quantity) && !empty($capacity)) {
-            $final  = $capacity/($sku*$quantity) * $simpleRateFormula;
+            $final  = ($capacity/($sku*$quantity)) * $simpleRateFormula;
         }else{
             $final  = $simpleRateFormula;
         }
         //-----------------------------------------
-        return number_format((float)($final), 5, '.', '');
+        return (float)($final);
     }
 
     public function copyCosting(CostingHeader $costingHeader){
@@ -217,7 +265,7 @@ class CostingNewController extends Controller
                     // 'capacity' => $capacity,
                     // 'quantity' => $value->quantity,
                 ]);
-                $data['trucking'] = $this->finalRate($request);
+                $data['trucking'] = $this->computedRate($request);
             }else if ($key == 'pickupPrice') {
                 $data['pickupPrice'] = $this->costingService->getPrice($value->itemCode,
                                             $costingHeader->warehouse_origin_id,
@@ -237,9 +285,4 @@ class CostingNewController extends Controller
         ],200);
     }
 
-    public function recomputeTruckingRateCosting(){
-        
-        
-        
-    }
 }

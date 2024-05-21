@@ -72,8 +72,8 @@ Route::middleware(['guest:web', 'preventBackHistory'])->name('auth.')->group(fun
     Route::post('costing/new/list', [CostingNewController::class, 'list'])->name('costing.new.list');
     Route::get('costing/new/vw', [CostingNewController::class, 'costingList'])->name('costing.new.view');
     Route::get('costing/copy/{costingHeader}', [CostingNewController::class, 'copyCosting'])->name('costing.copy');
-    Route::get('costing/finalRate', [CostingNewController::class, 'finalRate'])->name('costing.finalRate');
-    Route::get('costing/recompute-trucking', [CostingNewController::class, 'finalRate'])->name('costing.recompute-trucking');
+    Route::get('costing/finalRate', [CostingNewController::class, 'computedRate'])->name('costing.finalRate');
+    Route::get('costing/recompute-trucking', [CostingNewController::class, 'computedFinalRate'])->name('costing.recompute-trucking');
      //signout
     //  Route::post('signout', [UserController::class, 'signout'])->name('signout');
 // });

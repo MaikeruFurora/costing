@@ -7,6 +7,7 @@
 <form action="{{ route('costing.new.store') }}" id="CostingForm" autocomplete="off" novalidate>
     <div class="row">
            <div class="col-lg-12">
+            
                 <div class="card">
                     <div class="card-body px-2 py-2">
                         <div class="row">

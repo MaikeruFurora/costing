@@ -28,8 +28,6 @@ class TruckRateController extends Controller
      */
     public function store(Request $request)
     {
-   
-
 
         $id = $request->input('id');
         if(!empty($id) && $request->status!='update'){

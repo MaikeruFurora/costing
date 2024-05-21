@@ -64,5 +64,6 @@
 }
 
 .alertify .ajs-modal {
-    background-color: #f0f0f0; /* Replace with your desired background color */
+    background-color: transparent;
+    /*width: 500px;  Set the width of the modal */
 }

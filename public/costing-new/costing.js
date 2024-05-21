@@ -53,25 +53,42 @@ const CostingData = {
             processData: false,
             contentType: false,
             cache: false,
-            success: function (msg) {
-                CostingForm.find(".form-control").val(0);
-                CostingForm.find("[name=brand]").empty();
-                CostingForm.find("[name=client]").empty()
-                CostingForm.find("[name=itemName]").empty()
-                CostingForm.find("[name=addRow]").text('Add')
-                $('select[name=province]').empty().trigger('change');
-                $('select[name=municipality]').empty().trigger('change');
-                CostingForm.find(".itemCode").text('');
-                Core.provinceData()
-                rowCosting.splice(0, rowCosting.length);
-                displayTable()
-                tempCosting= {}
-                alertify.alert('Message',"Costing submitted successfully");
-            },
-            error: function (a,b,c) {
-                alert(a.responseText,b,c)
-            }
-        });
+        }).done(function(data){
+            CostingForm.find(".form-control").val(0);
+            CostingForm.find("[name=brand]").empty();
+            CostingForm.find("[name=client]").empty()
+            CostingForm.find("[name=itemName]").empty()
+            CostingForm.find("[name=addRow]").text('Add')
+            $('select[name=province]').empty().trigger('change');
+            $('select[name=municipality]').empty().trigger('change');
+            CostingForm.find(".itemCode").text('');
+            Core.provinceData()
+            rowCosting.splice(0, rowCosting.length);
+            displayTable()
+            tempCosting= {}
+            alertify.alert('Message',data.msg);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+                let tableHTML = '<table class="table table-bordered table-striped table-sm" style="border-collapse: collapse;"><thead><tr><th>Item</th><th>Quantity</th><th>Trucking</th></tr></thead><tbody>';
+                JSON.parse(jqXHR.responseText).data.forEach(row=>{
+                    tableHTML +=`<tr><td>${row.itemName}</td><td>${row.quantity}</td><td>${row.trucking}</td></tr>`
+                });
+                tableHTML += '</tbody></table>';
+                // Display the table in a confirm dialog
+                alertify.confirm(JSON.parse(jqXHR.responseText).msg,tableHTML, function(){
+                    CostingData.formSubmit(formData)
+                },function(){
+                    alertify.error('Declined');
+                })
+                .set({
+                    labels   : {ok:"Yes", cancel:"No"},
+                    backdrop : true,
+                    closable : false,
+                    resizable: true,
+                    movable  : false,
+                    modal    : true
+                })
+                
+        })
     },
    
     inputFields:function(){
@@ -163,25 +180,25 @@ const CostingData = {
             },
         ]
     },
-    checkTruckLoad:function(capacity,deliveryType){
-        let inkls = rowCosting.reduce((acc, row) => acc + (parseInt(row.quantity * row.sku)), 0);
-        console.log(inkls);
-        if (inkls < parseFloat(capacity) && deliveryType=="ONETIMEDELIVERY") {
-            return {
-                msg: "The truck is underload. Would you like to continue?"+inkls,
-                status: false
-            }
-        } else if (inkls > parseFloat(capacity) && deliveryType=="ONETIMEDELIVERY") {
-            return {
-                msg: "Truck is over load",
-                status: false
-            }
-        } else {
-            return {
-                status: true
-            }
-        }
-    },
+    // checkTruckLoad:function(capacity,deliveryType){
+    //     let inkls = rowCosting.reduce((acc, row) => acc + (parseInt(row.quantity * row.sku)), 0);
+    //     console.log(inkls);
+    //     if (inkls < parseFloat(capacity) && deliveryType=="ONETIMEDELIVERY") {
+    //         return {
+    //             msg: "The truck is underload. Will cause of recompute of trucking. Would you like to continue",
+    //             status: false
+    //         }
+    //     } else if (inkls > parseFloat(capacity) && deliveryType=="ONETIMEDELIVERY") {
+    //         return {
+    //             msg: "Truck is over load. will cause of recompute of trucking. Would you like to continue",
+    //             status: false
+    //         }
+    //     } else {
+    //         return {
+    //             status: true
+    //         }
+    //     }
+    // },
 
     getTruckingRate: function(warehouse, province, municipality, trucktype) {
         $.ajax({
@@ -272,7 +289,9 @@ const CostingData = {
                 totalGrossPrice()
             }
         });
-    }
+    },
+
+    
     
 }
 
@@ -370,7 +389,7 @@ CostingForm.find("[name=specialPrice]").on('change',function(){
  */
 
 CostingForm.find('button[name=more]').on('click',function(){
-    CostingForm.find("#offcanvasRight .btn-close").val("open")
+    CostingForm.find("#offcanvasRight .btn-closed").val("open")
     displayMoreCosting(tempCosting,false)
 })
 
@@ -395,7 +414,7 @@ const displayMoreCosting = function(dataJson,disabled){
             listGroup.append(listItem);
         }
     }
-    $("#offcanvasRight .offcanvas-body").empty().append(listGroup);
+    $("#offcanvasRight .costing-fields").empty().append(listGroup);
     $("#offcanvasRight").offcanvas('show');
 }
 
@@ -404,7 +423,7 @@ const displayMoreCosting = function(dataJson,disabled){
  * SAVING TEMP COSTING
  * 
  */
-CostingForm.find("#offcanvasRight .btn-close").on('click',function(){
+CostingForm.find("#offcanvasRight .btn-closed").on('click',function(){
     if ($(this).val()=="open") {
     $("#offcanvasRight .list-group-item input").each(function(){
             tempCosting[$(this).attr("name")] = $(this).val();
@@ -424,7 +443,7 @@ CostingForm.find("#offcanvasRight .btn-close").on('click',function(){
 $("table.table tbody").on("click", "button[name=moreCostingRow]", function(){
     let id    = $(this).data("id");
     displayMoreCosting(rowCosting[id],true)
-    $(".btn-close").val("close")
+    $(".btn-closed").val("close")
 })
 
 /**
@@ -570,7 +589,7 @@ const displayTable = () =>{
  */
 
 $("#myTable.table tbody").on("click", "button[name=removeRow]", function(){
-    alertify.confirm("Do you want remove this item?", function (e) {
+    alertify.confirm("Message","Do you want remove this item?", function (e) {
         if (e) {
             let id    = $(this).attr("data-id");
             rowCosting.splice(id,1);
@@ -716,7 +735,6 @@ CostingForm.on('submit', function (e) {
     let formData     = new FormData(this);
     let capacity     = CostingForm.find("[name=trucktype_id] :selected").attr("data-capacity"); // Get the selected option element
     let deliveryType = CostingForm.find("[name=deliveryType]").val();
-    let bool = CostingData.checkTruckLoad(capacity,deliveryType);
 
     formData.append('province', CostingForm.find("[name=province] :selected").text());
     formData.append('item', CostingForm.find("[name=item] :selected").text());
@@ -724,56 +742,9 @@ CostingForm.on('submit', function (e) {
     formData.append('deliveryType', deliveryType);
     formData.append('costing', JSON.stringify(rowCosting));
     formData.append('_token', Core.token);
-    // Convert data to HTML table
-    let tableHTML = '<table class="table table-bordered table-striped table-sm" style="border-collapse: collapse;"><thead><tr><th>Item</th><th>Quantity</th><th>Trucking</th></tr></thead><tbody>';
-    rowCosting.forEach(row=>{
-        tableHTML +=`</tbody>
-        <tr>
-            <td>${row.itemName}</td>
-            <td>${row.quantity}</td>
-            <td>${row.trucking}</td>
-        </tr>`
-    });
-    tableHTML += '</tbody></table>';
+    formData.append('capacity',capacity);
 
-    // Display the table in a confirm dialog
-    alertify.confirm('Message',tableHTML, function(){
-        alertify.success('Accepted');
-    },function(){
-        alertify.error('Declined');
-    }).set('modal', false);
-
-
-
-    // if (bool && Object.prototype.hasOwnProperty.call(bool, 'msg')) {
-        
-
-        
-    //     alertify.confirm(bool.msg, function (e) {
-    //         if (e) {
-    //             CostingData.formSubmit(formData);
-    //             formData.append('confirmation', 'YES');
-    //             alertify.confirm().set({
-    //                 labels : {
-    //                     ok     : 'Confirm',
-    //                     cancel : 'Cancel',
-    //                 },
-    //             });
-    //             alertify.success("You've clicked saved");
-    //         } else {
-    //             alertify.confirm().set({
-    //                 labels : {
-    //                     ok     : 'Confirm',
-    //                     cancel : 'Cancel',
-    //                 },
-    //             });
-    //             alertify.error("You've Cancel");
-    //         }
-    //     });
-    // }else{
-    //     CostingData.formSubmit(formData);
-    // }
-       
+    CostingData.formSubmit(formData);
           
 });
 
